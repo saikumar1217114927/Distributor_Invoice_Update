@@ -247,8 +247,7 @@ def generate():
     except Exception as exc:
         flash(f"Could not read the Excel file: {exc}")
         return redirect(url_for("index"))
-    print(f"DEBUG: {len(rows)} rows loaded. Emails found: {sum(1 for r in rows if r.get('email'))}. Sample row keys: {list(rows[0].keys()) if rows else 'none'}. Sample email value: {rows[0].get('email')!r if rows else 'n/a'}", flush=True)
-
+    print(f"DEBUG: {len(rows)} rows loaded. Emails found: {sum(1 for r in rows if r.get('email'))}. Sample row keys: {list(rows[0].keys()) if rows else 'none'}. Sample email value: {(rows[0].get('email') if rows else 'n/a')!r}", flush=True)
     if not rows:
         flash("No distributor rows found in the uploaded sheet.")
         return redirect(url_for("index"))
