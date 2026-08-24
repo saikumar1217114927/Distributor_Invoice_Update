@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Email Config - Distributor Invoices</title>
+<style>
+  :root {
+    --ink: #1b1f24;
+    --muted: #5b6470;
+    --line: #dfe3e8;
+    --accent: #0f5c4a;
+    --accent-dark: #0b4738;
+    --bg: #f6f7f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: "Segoe UI", Arial, Helvetica, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0;
+    padding: 48px 16px 80px;
+  }
+  .top-nav {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    display: flex;
+    gap: 2px;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    z-index: 10;
+  }
+  .tab-link {
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+  .tab-link.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .card {
+    max-width: 780px;
+    margin: 0 auto;
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 36px 40px 40px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h3 { font-size: 15px; margin: 0 0 10px; }
+  p.sub {
+    color: var(--muted);
+    margin: 0 0 24px;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    margin: 18px 0 6px;
+  }
+  input[type=text], textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: inherit;
+  }
+  textarea { resize: vertical; }
+  input[type=text]:focus, textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+  .hint {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 6px;
+    font-size: 13px;
+  }
+  th, td {
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  th {
+    color: var(--muted);
+    font-size: 11.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .dist-table input[type=text] {
+    padding: 6px 8px;
+    font-size: 13px;
+  }
+  .dist-table-wrap {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-top: 6px;
+  }
+  .dist-table-wrap table { margin-top: 0; }
+  .dist-table-wrap th { position: sticky; top: 0; background: #fff; }
+  button {
+    margin-top: 28px;
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    padding: 13px;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  button:hover { background: var(--accent-dark); }
+  .flash {
+    background: #fdeceb;
+    border: 1px solid #f3c2be;
+    color: #8a2b23;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+  .warn {
+    background: #fff7e6;
+    border: 1px solid #f0dba3;
+    color: #6b5100;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    margin-bottom: 18px;
+    line-height: 1.5;
+  }
+  .results {
+    margin-bottom: 26px;
+    background: #f8faf9;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+  .result-sent { color: var(--accent-dark); }
+  .result-failed { color: #8a2b23; }
+  .result-skipped { color: var(--muted); }
+</style>
+</head>
+<body>
+  <div class="top-nav">
+    <a href="{{ url_for('index') }}" class="tab-link">Generate Invoices</a>
+    <a href="{{ url_for('email_config') }}" class="tab-link active">Email Config</a>
+  </div>
+
+  <div class="card">
+    <h1>Email Config</h1>
+    <p class="sub">Batch: <strong>{{ batch.month_period }}</strong> &middot; {{ batch.distributors|length }} distributor(s). Emails are sent individually, one invoice attached per distributor, from <strong>{{ 'info@myalternates.com' }}</strong>.</p>
+
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}{% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+
+    {% if not email_configured %}
+      <div class="warn">
+        <strong>Heads up:</strong> the server's <code>EMAIL_APP_PASSWORD</code> environment variable isn't set yet, so sending will fail until that's configured (see README — same pattern as <code>TEAM_PASSWORD</code>).
+      </div>
+    {% endif %}
+
+    {% if results %}
+      <div class="results">
+        <h3>Send results</h3>
+        <table>
+          <tr><th>Code</th><th>Name</th><th>Result</th></tr>
+          {% for code, name, res in results %}
+          <tr>
+            <td>{{ code }}</td>
+            <td>{{ name }}</td>
+            <td class="{{ 'result-sent' if res.startswith('Sent') else ('result-failed' if res.startswith('FAILED') else 'result-skipped') }}">{{ res }}</td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+    {% endif %}
+
+    <form action="{{ url_for('send_emails') }}" method="post">
+      <label>Distributors &amp; emails</label>
+      <div class="dist-table-wrap">
+        <table class="dist-table">
+          <tr><th>Code</th><th>Name</th><th>Email</th></tr>
+          {% for d in batch.distributors %}
+          <tr>
+            <td>{{ d.code }}</td>
+            <td>{{ d.name }}</td>
+            <td><input type="text" name="email_{{ d.code }}" value="{{ d.email }}" placeholder="distributor@email.com"></td>
+          </tr>
+          {% endfor %}
+        </table>
+      </div>
+      <div class="hint">Edit any email address here if it's missing or wrong before sending — this doesn't change the Excel file.</div>
+
+      <label for="subject">Email subject</label>
+      <input type="text" id="subject" name="subject" value="{{ subject }}" placeholder="Commission Payout Invoice - {code} - {{ batch.month_period }}" required>
+
+      <label for="body">Email body</label>
+      <textarea id="body" name="body" rows="9" placeholder="Dear {name},
+
+Please find attached your commission payout invoice for {{ batch.month_period }}.
+
+Regards,
+Myalternates" required>{{ body }}</textarea>
+      <div class="hint">Use <code>{name}</code> and <code>{code}</code> anywhere in the subject or body — each gets swapped for that distributor's own name/code.</div>
+
+      <label for="bcc">BCC (comma-separated, optional)</label>
+      <input type="text" id="bcc" name="bcc" value="{{ bcc }}" placeholder="director1@myalternates.com, director2@myalternates.com">
+      <div class="hint">These addresses are BCC'd on every single email sent in this batch.</div>
+
+      <button type="submit">Send emails to all distributors</button>
+    </form>
+  </div>
+</body>
+</html>

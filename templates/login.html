@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Distributor Invoice Generator - Sign in</title>
+<style>
+  :root { --ink: #1b1f24; --muted: #5b6470; --line: #dfe3e8; --accent: #0f5c4a; --accent-dark: #0b4738; --bg: #f6f7f5; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, Helvetica, sans-serif; background: var(--bg); color: var(--ink); margin: 0; padding: 80px 16px; }
+  .card { max-width: 380px; margin: 0 auto; background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 32px 32px 36px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
+  h1 { font-size: 19px; margin: 0 0 20px; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; }
+  input[type=password] { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 6px; font-size: 14px; }
+  button { margin-top: 20px; width: 100%; background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 6px; font-size: 15px; font-weight: 600; cursor: pointer; }
+  button:hover { background: var(--accent-dark); }
+  .flash { background: #fdeceb; border: 1px solid #f3c2be; color: #8a2b23; padding: 10px 14px; border-radius: 6px; font-size: 13px; margin-bottom: 18px; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>Team access</h1>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}{% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}{% endif %}
+    {% endwith %}
+    <form method="post">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autofocus required>
+      <button type="submit">Sign in</button>
+    </form>
+  </div>
+</body>
+</html>
