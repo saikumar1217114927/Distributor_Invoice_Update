@@ -351,7 +351,7 @@ def _send_invoice_email(to_email, bcc_list, subject, body, attachment_path, atta
         filename=attachment_name,
     )
 
-    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as smtp:
+    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15) as smtp:
         smtp.login(EMAIL_ADDRESS, EMAIL_APP_PASSWORD)
         smtp.send_message(msg)
 
