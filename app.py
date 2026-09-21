@@ -213,6 +213,36 @@ def index():
     return render_template("index.html")
 
 
+SAMPLE_TEMPLATE_COLUMNS = [
+    "Partner Code", "Partner Name", "Total", "GST No", "GST",
+    "Address", "PAN", "Bank Name", "Bank Account Number", "ifsc code", "Email",
+]
+SAMPLE_TEMPLATE_ROWS = [
+    ["P001", "Ramesh Kumar", 50000, "33AAJCP2335B1ZX", 9000,
+     "12 Anna Salai, Chennai", "ABCDE1234F", "HDFC Bank", "123456789012", "HDFC0000123", "ramesh@example.com"],
+    ["P002", "Suresh Traders", 25000, "29AAJCP2335B1ZY", 4500,
+     "45 MG Road, Bengaluru", "FGHIJ5678K", "ICICI Bank", "987654321098", "ICIC0000456", "suresh@example.com"],
+    ["P003", "Anitha Distributors", 15000, "", 0,
+     "", "", "SBI", "112233445566", "SBIN0000789", ""],
+]
+
+
+@app.route("/sample-template", methods=["GET"])
+@login_required
+def sample_template():
+    df = pd.DataFrame(SAMPLE_TEMPLATE_ROWS, columns=SAMPLE_TEMPLATE_COLUMNS)
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Distributors")
+    buf.seek(0)
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name="distributor_invoice_sample_template.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
 @app.route("/generate", methods=["POST"])
 @login_required
 def generate():
@@ -285,7 +315,8 @@ def generate():
             })
             summary_lines.append(
                 f"{row['partner_code']},{row['partner_name']},"
-                f"{gst['base']},{gst['igst']},{gst['sgst']},{gst['cgst']},{gst['total']}"
+                f"{gst['base']:.2f},{gst['igst']:.2f},{gst['sgst']:.2f},"
+                f"{gst['cgst']:.2f},{gst['total']:.2f}"
             )
         zf.writestr("summary.csv", "\n".join(summary_lines))
 

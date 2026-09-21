@@ -131,13 +131,13 @@ def compute_gst(total_amount, gst_no, gst_amount=0):
 
     Rules:
       - blank/0 GST No -> no tax at all, regardless of the GST column.
-      - GST No starts with "33" -> GST column value split into SGST +
-        CGST halves (rounded so the two halves still sum exactly to the
-        original value).
+      - GST No starts with "33" -> GST column value split evenly into
+        SGST + CGST halves, kept as exact decimals (not rounded to whole
+        rupees) so the two halves always come out equal.
       - GST No present, otherwise -> GST column value charged in full as
         IGST.
     """
-    base = round(_safe_amount(total_amount))
+    base = round(_safe_amount(total_amount), 2)
 
     if is_blank_gst(gst_no):
         return {
@@ -150,12 +150,12 @@ def compute_gst(total_amount, gst_no, gst_amount=0):
             "total": base,
         }
 
-    tax_total = round(_safe_amount(gst_amount))
+    tax_total = round(_safe_amount(gst_amount), 2)
     gst_clean = str(gst_no).strip()
 
     if gst_clean.startswith("33"):
-        sgst = round(tax_total / 2)
-        cgst = tax_total - sgst  # keeps sgst + cgst exactly == tax_total
+        sgst = round(tax_total / 2, 2)
+        cgst = sgst  # exact half each way, so SGST always equals CGST
         return {
             "gst_applicable": True,
             "base": base,
@@ -163,7 +163,7 @@ def compute_gst(total_amount, gst_no, gst_amount=0):
             "sgst": sgst,
             "cgst": cgst,
             "tax_total": tax_total,
-            "total": base + tax_total,
+            "total": round(base + tax_total, 2),
         }
     else:
         return {
@@ -173,14 +173,17 @@ def compute_gst(total_amount, gst_no, gst_amount=0):
             "sgst": 0,
             "cgst": 0,
             "tax_total": tax_total,
-            "total": base + tax_total,
+            "total": round(base + tax_total, 2),
         }
 
 
 def fmt_rupees(n):
-    """1234567 -> '12,34,567' using the Indian digit grouping."""
-    n = int(n)
-    s = str(abs(n))
+    """1234567 -> '12,34,567' using the Indian digit grouping. Shows two
+    decimal places whenever the amount isn't a whole rupee value."""
+    n = round(float(n), 2)
+    is_whole = float(n).is_integer()
+    whole = int(abs(n))
+    s = str(whole)
     if len(s) <= 3:
         grouped = s
     else:
@@ -193,6 +196,9 @@ def fmt_rupees(n):
         if rest:
             parts.insert(0, rest)
         grouped = ",".join(parts) + "," + last3
+    if not is_whole:
+        paise = round((abs(n) - whole) * 100)
+        grouped += f".{paise:02d}"
     return ("-" if n < 0 else "") + grouped
 
 

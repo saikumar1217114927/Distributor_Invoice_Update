@@ -100,6 +100,12 @@
     line-height: 1.6;
   }
   .rules strong { color: var(--accent-dark); }
+  .sample-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .sample-link:hover { text-decoration: underline; }
   button {
     margin-top: 28px;
     width: 100%;
@@ -146,7 +152,7 @@
     <form action="/generate" method="post" enctype="multipart/form-data">
       <label for="excel_file">Distributor Excel file (.xlsx)</label>
       <input type="file" id="excel_file" name="excel_file" accept=".xlsx,.xls" required>
-      <div class="hint">Expected columns: Partner Code, Partner Name, Total, GST No, GST, Address, PAN, Bank Name, Bank Account Number, ifsc code, Email. (Address, PAN and Email are optional — Email is only needed if you plan to send invoices out from the Email Config tab.)</div>
+      <div class="hint">Expected columns: Partner Code, Partner Name, Total, GST No, GST, Address, PAN, Bank Name, Bank Account Number, ifsc code, Email. (Address, PAN and Email are optional — Email is only needed if you plan to send invoices out from the Email Config tab.) &nbsp;<a href="{{ url_for('sample_template') }}" class="sample-link">Download sample template (.xlsx)</a></div>
 
       <label for="month_period">Payout month / period</label>
       <input type="month" id="month_period" name="month_period" required>
